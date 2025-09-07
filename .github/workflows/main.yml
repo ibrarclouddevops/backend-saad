@@ -1,0 +1,28 @@
+name: PROD ACTIONS
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to PRODUCTION Environment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.NEW_HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          # optional; remove if using default 22
+          script: |
+            cd /var/www/backend-saad
+            git pull origin main
+            npm install 
+            # npm run build     # <- uncomment if you have a build step
+            pm2 restart sms-app || pm2 start index.js --name sms-app
+            pm2 save
